@@ -1,4 +1,4 @@
-# @locio/vue
+# @locio-au/vue
 
 **Vue address autocomplete** for Australian addresses, with validation and
 geocoding built in. Backed by G-NAF, the national address register.
@@ -13,14 +13,14 @@ geocoding built in. Backed by G-NAF, the national address register.
 - Vue 3, no dependencies beyond it
 
 ```sh
-npm install @locio/vue
+npm install @locio-au/vue
 ```
 
 ## Quick start
 
 ```vue
 <script setup lang="ts">
-import { AddressAutocomplete, type Address } from "@locio/vue";
+import { AddressAutocomplete, type Address } from "@locio-au/vue";
 
 function onSelect(address: Address) {
   console.log(address.formatted);
@@ -91,7 +91,7 @@ and no opinion about the DOM:
 
 ```vue
 <script setup lang="ts">
-import { useAddressAutocomplete } from "@locio/vue";
+import { useAddressAutocomplete } from "@locio-au/vue";
 
 const { term, results, status } = useAddressAutocomplete({
   publicKey: "lc_pub_...",
@@ -124,7 +124,7 @@ exactly like an address that does not exist.
 The client is exported if you want the other calls without the UI:
 
 ```ts
-import { createClient } from "@locio/vue";
+import { createClient } from "@locio-au/vue";
 
 const locio = createClient({ publicKey: "lc_pub_..." });
 
@@ -146,7 +146,7 @@ A record can carry two pids and they mean different things:
 | `gnaf.primary_pid` | The **parcel** it sits on, when the row is a unit. |
 
 ```ts
-import { isUnit } from "@locio/vue";
+import { isUnit } from "@locio-au/vue";
 ```
 
 Storing the primary pid stores the building rather than the door, and nothing
