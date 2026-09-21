@@ -39,6 +39,16 @@ export interface UseAddressAutocomplete {
   term: Ref<string>;
   results: Ref<Address[]>;
   status: Ref<AutocompleteStatus>;
+  /**
+   * What the service said about the country it searched, when it said
+   * anything: a public key is scoped to where the visitor is, and somebody
+   * outside the countries you cover gets no results and a sentence saying so.
+   * Show it in place of your own empty message, which was written for
+   * somebody who has not typed enough yet.
+   */
+  note: Ref<string>;
+  /** Which country was searched, as a two letter ISO 3166-1 code. */
+  countryCode: Ref<string>;
   error: Ref<unknown>;
   /** Forget the results without clearing the box: use after a selection. */
   clear(): void;
@@ -74,6 +84,8 @@ export function useAddressAutocomplete(
 
   const term = ref("");
   const results = shallowRef<Address[]>([]);
+  const note = ref("");
+  const countryCode = ref("");
   const status = ref<AutocompleteStatus>("idle");
   const error = shallowRef<unknown>(null);
 
@@ -84,6 +96,7 @@ export function useAddressAutocomplete(
     clearTimeout(timer);
     inFlight?.abort();
     results.value = [];
+    note.value = "";
     status.value = "idle";
   }
 
@@ -101,6 +114,7 @@ export function useAddressAutocomplete(
     if (next.trim().length < minLength) {
       inFlight?.abort();
       results.value = [];
+      note.value = "";
       status.value = "idle";
       return;
     }
@@ -115,11 +129,13 @@ export function useAddressAutocomplete(
       inFlight = mine;
 
       client
-        .search(next, { limit, signal: mine.signal })
-        .then((found) => {
+        .searchScoped(next, { limit, signal: mine.signal })
+        .then((answer) => {
           if (mine.signal.aborted) return;
-          results.value = found;
-          status.value = found.length > 0 ? "results" : "empty";
+          results.value = answer.addresses;
+          note.value = answer.note ?? "";
+          countryCode.value = answer.countryCode ?? "";
+          status.value = answer.addresses.length > 0 ? "results" : "empty";
           error.value = null;
         })
         .catch((err: unknown) => {
@@ -127,11 +143,12 @@ export function useAddressAutocomplete(
           // and it must repaint nothing: a newer request owns the box now.
           if (mine.signal.aborted) return;
           results.value = [];
+          note.value = "";
           error.value = err;
           status.value = "unavailable";
         });
     }, debounceMs);
   });
 
-  return { term, results, status, error, clear };
+  return { term, results, status, note, countryCode, error, clear };
 }

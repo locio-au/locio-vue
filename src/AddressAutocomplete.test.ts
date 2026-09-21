@@ -173,3 +173,26 @@ it("supports v-model on the typed term", async () => {
 
   expect(w.emitted("update:modelValue")).toBeTruthy();
 });
+
+/**
+ * A visitor in a country we hold no addresses for.
+ *
+ * Their key is scoped to where they are, so the service answers with no
+ * results and a sentence saying why. Our own empty message was written for
+ * somebody who typed too little of an Australian address, and showing it to
+ * somebody in Auckland tells them to keep typing an address that will never
+ * arrive.
+ */
+it("says why there are no addresses when the service explained", async () => {
+  stubFetch({
+    data: [],
+    country_code: "NZ",
+    note: "we hold no address data for NZ. Addresses are available for AU.",
+  });
+  const w = widget();
+
+  await w.get("input").setValue("145 sydney road");
+  await settle();
+
+  expect(w.get('[role="status"]').text()).toMatch(/no address data for NZ/i);
+});

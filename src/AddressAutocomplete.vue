@@ -46,7 +46,7 @@ const emit = defineEmits<{
   "update:modelValue": [term: string];
 }>();
 
-const { term, results, status, clear } = useAddressAutocomplete({
+const { term, results, status, note, clear } = useAddressAutocomplete({
   publicKey: props.publicKey,
   baseUrl: props.baseUrl,
   debounceMs: props.debounceMs,
@@ -72,7 +72,13 @@ const MESSAGES: Record<string, string> = {
   empty: "No addresses match that yet. Keep typing, or check the street number.",
   unavailable: "Address lookup is unavailable right now. Please try again shortly.",
 };
-const message = computed(() => MESSAGES[status.value] ?? "");
+// The service's own sentence wins over ours. Ours is written for somebody who
+// has not typed enough of an Australian address yet; the service's says things
+// ours cannot know, such as that we hold no addresses at all for the country
+// this visitor is in.
+const message = computed(() =>
+  status.value === "empty" && note.value ? note.value : (MESSAGES[status.value] ?? ""),
+);
 
 if (props.modelValue !== undefined) term.value = props.modelValue;
 watch(term, (next) => emit("update:modelValue", next));
